@@ -28,7 +28,7 @@ router.put('/like/:id', verifyToken, postController.likePost);
 router.get('/islike/:id', verifyToken, postController.isLikePost);
 
 // comment post
-router.post('/comment/:id', verifyToken, postController.commentPost);
+router.post('/comment/:id', [verifyToken, upload.single('commentImg')], postController.commentPost);
 
 // update comment
 router.put('/comment/update/:id', verifyToken, postController.updateComment);

@@ -155,7 +155,7 @@ const postController = {
 
             return res.status(200).json({
                 status: 'success',
-                id: post?._id,
+                post: post,
             });
         } catch (error) {
             return res.status(500).json({
@@ -200,23 +200,28 @@ const postController = {
         try {
             const { id } = req.params;
             const userID = req.user?.id as string;
-            const { comment, image } = req.body;
+            const { comment } = req.body;
+            const { file } = req;
+            console.log(file);
 
             const user = await handleUser.getUserByID(userID);
             const post = await handlePost.getPostByID(id);
 
-            if (comment || image) {
+            console.log(user);
+
+            if (comment || file) {
                 post?.comment?.push({
                     user: user,
                     comment: comment,
-                    image: image,
+                    image: file?.filename,
+                    path: file?.path,
                 });
             }
             post?.save();
 
             return res.status(200).json({
                 status: 'Success',
-                data: post,
+                data: post?.comment,
             });
         } catch (error) {
             return res.status(500).json({

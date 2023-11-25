@@ -1,13 +1,9 @@
 import axios from 'axios';
 import API from '../config/axios';
 import { baseURL } from '../config/axios';
+import { ICommentAPI } from '../hook';
 // API USER
-// export const refreshToken = async () => {
-//     const { data } = await API.get('/api/v1/auth/token', {
-//         withCredentials: true,
-//     });
-//     return data;
-// };
+
 export const logIn = async (input: { email: string; password: string }) => {
     const { data } = await axios.post(`${baseURL}/api/v1/auth/login`, input, { withCredentials: true });
     return data;
@@ -48,9 +44,18 @@ export const likePost = async (id: string) => {
     return data;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const createPost = async (formData: any) => {
+export const createPost = async (formData: FormData) => {
     const { data } = await API.post(`/api/v1/post/create`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const commentPost = async (req: ICommentAPI) => {
+    console.log(req);
+
+    const { data } = await API.post(`/api/v1/post//comment/${req.id}`, req.formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
     return data;

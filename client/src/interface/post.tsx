@@ -29,9 +29,12 @@ export interface ILike {
 
 export interface IComment {
     user: {
-        id: string | null;
+        _id: string | null;
         displayName: string | null;
-        // image: string | null;
+        avatar: {
+            image: string;
+        };
     };
     comment: string | null;
+    image: string | null;
 }

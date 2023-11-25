@@ -14,8 +14,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
 import { Fragment, useState } from 'react';
-import { useMutation } from 'react-query';
-import { createPost } from '../../../utils';
+import { useCreatePost } from '../../../hook';
 
 interface IProps {
     open: boolean;
@@ -27,16 +26,20 @@ const CreatePost = (props: IProps) => {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const formData: any = new FormData();
+
     const [type, setType] = useState<string>('0');
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     const [input, setInput] = useState<string | null>(null);
 
-    const { data, mutate: handleCreatePost } = useMutation({
-        mutationKey: 'Create Post',
-        mutationFn: () => createPost(formData),
-    });
+    const handleClose = () => {
+        close();
+        setSelectedImage(null);
+        setPreviewImage(null);
+    };
+
+    const { mutate: handleCreatePost } = useCreatePost(handleClose);
 
     const handleChange = (event: SelectChangeEvent) => {
         setType(event.target.value as string);
@@ -49,28 +52,24 @@ const CreatePost = (props: IProps) => {
     const selectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files) {
             return;
+        } else {
+            setSelectedImage(e.target.files[0]);
+            const url = URL.createObjectURL(e.target.files[0]);
+            setPreviewImage(url);
         }
-        setSelectedImage(e.target.files[0]);
-
-        const url = URL.createObjectURL(e.target.files[0]);
-        setPreviewImage(url);
     };
 
     const handleSubmit = async () => {
-        if (input !== null || selectedImage !== null) {
+        if (input !== null && selectedImage !== null) {
             formData.append('title', input);
-            formData.append('postImg', selectedImage, selectedImage?.name);
-            handleCreatePost();
+            formData.append('postImg', selectedImage, selectedImage!.name);
+        } else if (input !== null && selectedImage === null) {
+            formData.append('title', input);
+        } else {
+            formData.append('postImg', selectedImage, selectedImage!.name);
         }
-        console.log('Chua nhap ');
+        handleCreatePost(formData);
     };
-
-    const handleClose = () => {
-        close();
-        setSelectedImage(null);
-        setPreviewImage(null);
-    };
-    console.log(data);
 
     const style = {
         position: 'absolute',
@@ -158,6 +157,7 @@ const CreatePost = (props: IProps) => {
                                         }}
                                     />
                                 </Box>
+
                                 <Box className="h-72">
                                     {previewImage && (
                                         <ImageList sx={{ width: '100%' }}>
@@ -167,6 +167,7 @@ const CreatePost = (props: IProps) => {
                                         </ImageList>
                                     )}
                                 </Box>
+
                                 <Box className="flex justify-start mt-3">
                                     <Button component="label">
                                         <ImageIcon className="p-0 m-0" fontSize="medium" />

@@ -5,7 +5,6 @@ import { IUser } from './user';
 export interface IPost {
     author: IUser;
     title: string;
-    // image: string;
     image: [];
     video?: string;
     like?: mongoose.Types.DocumentArray<ILike>;

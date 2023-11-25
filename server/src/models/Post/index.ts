@@ -32,7 +32,10 @@ export const handlePost = {
         PostModel.find()
             .populate('author')
             .populate({ path: 'author', populate: { path: 'avatar', select: 'image path' } })
-            .populate({ path: 'comment', populate: { path: 'user' } })
+            .populate({
+                path: 'comment',
+                populate: { path: 'user', populate: { path: 'avatar', select: 'image path' } },
+            })
             .exec(),
     getPostByID: (id: string) => PostModel.findById(id),
     createPost: (value: Record<string, any>) => PostModel.create(value),
