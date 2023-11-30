@@ -196,6 +196,37 @@ const postController = {
             });
         }
     },
+    getCommentPostByID: async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const userID = req.user?.id as string;
+            const query = req.query['id'];
+            let data = {};
+
+            const post = await handlePost.getPostByID(id);
+            if (post !== null) {
+                post.comment?.map((item) => {
+                    if (userID === item.user.toString() && query === item._id?.toString()) {
+                        data = {
+                            comment: item.comment || null,
+                            image: item.image || null,
+                            _id: item._id,
+                        };
+                        console.log({ comment: item.comment, image: item.image, _id: item._id });
+                    }
+                });
+            }
+            return res.status(200).json({
+                status: 'Success',
+                data: data,
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: 'Fail',
+                message: error.message,
+            });
+        }
+    },
     commentPost: async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
@@ -265,6 +296,10 @@ const postController = {
             const { id } = req.params;
             const userID = req.user?.id as string;
             const query = req.query['id'];
+            console.log({
+                id: id,
+                query: query,
+            });
 
             let indexCommentToDelete = 0;
 

@@ -37,4 +37,5 @@ export interface IComment {
     };
     comment: string | null;
     image: string | null;
+    _id: string;
 }

@@ -2,7 +2,16 @@
 // import type { TypedUseSelectorHook } from 'react-redux';
 
 import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { commentPost, createPost, getAllPost, likePost } from '../utils';
+import {
+    commentPost,
+    createPost,
+    deleteCommentPost,
+    getAllPost,
+    getCommentPost,
+    likePost,
+    updateCommentPost,
+} from '../utils';
+import { IComment } from '../interface/post';
 
 // // Use throughout your app instead of plain `useDispatch` and `useSelector`
 // export const useAppDispatch: () => AppDispatch = useDispatch;
@@ -51,6 +60,25 @@ export interface ICommentAPI {
     id: string;
 }
 
+// const useGetCommentPost = () => {
+//     const queryClient = useQueryClient();
+//     return useMutation({
+//         mutationFn: (id: { commentID: string; postID: string }) => getCommentPost(id),
+//         onSuccess: () => {
+//             queryClient.invalidateQueries('posts');
+//         },
+//     });
+// };
+
+const useGetCommentPost = (commentID: string, postID: string, onSuccess: (data: { data: IComment }) => void) => {
+    return useQuery(['comment posts', commentID, postID], () => getCommentPost(commentID, postID), {
+        onSuccess: onSuccess,
+        enabled: false,
+
+        onError: () => {},
+    });
+};
+
 const useCommentPost = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -61,4 +89,35 @@ const useCommentPost = () => {
     });
 };
 
-export { useGetAllPost, useLikePost, useCreatePost, useCommentPost };
+const useDeleteCommentPost = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id: { commentID: string; postID: string }) => deleteCommentPost(id),
+        onSuccess: () => {
+            console.log('Successs');
+
+            queryClient.invalidateQueries('posts');
+        },
+    });
+};
+
+const useUpdateCommentPost = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: { commentID: string; postID: string; update: { comment: string; image: string } }) =>
+            updateCommentPost(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries('posts');
+        },
+    });
+};
+
+export {
+    useGetAllPost,
+    useLikePost,
+    useCreatePost,
+    useCommentPost,
+    useDeleteCommentPost,
+    useGetCommentPost,
+    useUpdateCommentPost,
+};

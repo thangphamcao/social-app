@@ -27,6 +27,9 @@ router.put('/like/:id', verifyToken, postController.likePost);
 // isLike post
 router.get('/islike/:id', verifyToken, postController.isLikePost);
 
+// get comment post
+router.get('/comment/get/:id', verifyToken, postController.getCommentPostByID);
+
 // comment post
 router.post('/comment/:id', [verifyToken, upload.single('commentImg')], postController.commentPost);
 

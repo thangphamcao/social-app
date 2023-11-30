@@ -51,12 +51,34 @@ export const createPost = async (formData: FormData) => {
     return data;
 };
 
+export const getCommentPost = async (commentID: string, postID: string) => {
+    if (commentID === '' || postID === '') {
+        return;
+    }
+    const { data } = await API.get(`/api/v1/post/comment/get/${postID}?id=${commentID}`);
+    return data;
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const commentPost = async (req: ICommentAPI) => {
     console.log(req);
 
-    const { data } = await API.post(`/api/v1/post//comment/${req.id}`, req.formData, {
+    const { data } = await API.post(`/api/v1/post/comment/${req.id}`, req.formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return data;
+};
+
+export const deleteCommentPost = async (id: { commentID: string; postID: string }) => {
+    const { data } = await API.delete(`/api/v1/post/comment/delete/${id.postID}?id=${id.commentID}`);
+    return data;
+};
+
+export const updateCommentPost = async (input: {
+    commentID: string;
+    postID: string;
+    update: { comment: string; image: string };
+}) => {
+    const { data } = await API.put(`/api/v1/post/comment/update/${input.postID}?id=${input.commentID}`, input.update);
     return data;
 };

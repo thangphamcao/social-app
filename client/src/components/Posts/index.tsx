@@ -23,20 +23,29 @@ import ShareIcon from '@mui/icons-material/Share';
 import ImageIcon from '@mui/icons-material/Image';
 import SendIcon from '@mui/icons-material/Send';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { Fragment, useState } from 'react';
+import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import { Fragment, useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import { IComment, IDetailPost, ILike } from '../../interface/post';
-import { useCommentPost, useGetAllPost, useLikePost } from '../../hook';
+import { useCommentPost, useGetAllPost, useGetCommentPost, useLikePost, useUpdateCommentPost } from '../../hook';
 import { IUser } from '../../interface';
-
+import MenuComment from '../Menu/comment';
 interface IPropsPosts {
     user: IUser | null;
 }
 
 const Posts = (props: IPropsPosts) => {
-    const [input, setInput] = useState<string | null>(null);
+    const [input, setInput] = useState<string | undefined>(undefined);
     const [selectedImage, setSelectedImage] = useState<File | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [hoverItem, setHoverItem] = useState<number | null>(null);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [isEdit, setIsEdit] = useState<{ commentID: string; postID: string }>({ commentID: '', postID: '' });
+    const [isUpdate, setIsUpdate] = useState<boolean>(false);
+
+    const textFieldRef = useRef<HTMLElement | null>(null);
+
+    const open = Boolean(anchorEl);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const formData: any = new FormData();
@@ -49,8 +58,39 @@ const Posts = (props: IPropsPosts) => {
 
     const { mutate } = useLikePost();
 
+    const handleSuccess = (data: { data: IComment }) => {
+        setIsUpdate(true);
+        if (data.data.comment) {
+            setInput(data.data.comment);
+        }
+        if (data.data.image) {
+            setPreviewImage(data.data.image);
+            console.log(data.data.image);
+            console.log(user?.id);
+        }
+        textFieldRef.current?.focus();
+    };
+
+    const getCommentPost = useGetCommentPost(isEdit.commentID, isEdit.postID, handleSuccess);
+
+    const handleUpdateCommentPost = useUpdateCommentPost();
+
+    const handleCloseMenu = () => {
+        setAnchorEl(null);
+    };
     const handleLikePost = async (id: string) => {
         mutate(id);
+    };
+
+    const openEdit = (data: { commentID: string; postID: string }) => {
+        console.log(isEdit);
+        setIsEdit(data);
+        getCommentPost.refetch();
+    };
+
+    const handleClick = (event: React.MouseEvent<HTMLElement>, id: string, postID: string) => {
+        setAnchorEl(event.currentTarget);
+        setIsEdit({ commentID: id, postID: postID });
     };
 
     const handleComment = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,28 +106,49 @@ const Posts = (props: IPropsPosts) => {
             setPreviewImage(url);
         }
     };
-    console.log(data);
 
     const submitComment = async (id: string) => {
-        if (input !== null && selectedImage !== null) {
-            formData.append('comment', input);
-            formData.append('commentImg', selectedImage, selectedImage!.name);
-        } else if (input !== null && selectedImage === null) {
-            formData.append('comment', input);
-        } else {
-            formData.append('commentImg', selectedImage, selectedImage!.name);
-        }
-        const data = {
-            formData: formData,
-            id: id,
-        };
+        if (isUpdate) {
+            const data = {
+                commentID: isEdit.commentID,
+                postID: isEdit.postID,
+                update: {
+                    comment: input as string,
+                    image: selectedImage!.name as string,
+                },
+            };
+            handleUpdateCommentPost.mutate(data);
 
-        comment.mutate(data);
+            console.log(2);
+        } else {
+            if (input !== null && selectedImage !== null) {
+                formData.append('comment', input);
+                formData.append('commentImg', selectedImage, selectedImage!.name);
+            } else if (input !== null && selectedImage === null) {
+                formData.append('comment', input);
+            } else {
+                formData.append('commentImg', selectedImage, selectedImage!.name);
+            }
+            const data = {
+                formData: formData,
+                id: id,
+            };
+
+            comment.mutate(data);
+        }
     };
 
     const handleClose = () => {
         setSelectedImage(null);
         setPreviewImage(null);
+    };
+
+    const handleMouseEnter = (index: number) => {
+        setHoverItem(index);
+    };
+
+    const handleMouseLeave = () => {
+        setHoverItem(null);
     };
 
     return (
@@ -213,7 +274,7 @@ const Posts = (props: IPropsPosts) => {
                             {item.comment.length > 0 &&
                                 item.comment.map((comment: IComment, index: number) => (
                                     <Box className="mt-2" key={index}>
-                                        <Box className="flex items-center px-2">
+                                        <Box className="flex items-center px-2" onMouseLeave={handleMouseLeave}>
                                             <Avatar
                                                 alt="Avatar"
                                                 src={
@@ -227,11 +288,31 @@ const Posts = (props: IPropsPosts) => {
                                                     cursor: 'pointer',
                                                 }}
                                             />
-                                            <Box className=" rounded-2xl bg-gray-100  py-2 px-4 cursor-pointer my-2">
+                                            <Box
+                                                onMouseEnter={() => handleMouseEnter(index)}
+                                                className={
+                                                    comment.comment
+                                                        ? ' rounded-2xl bg-gray-100  py-2 px-4 cursor-pointer my-2 '
+                                                        : ' rounded-2x  py-2 px-4 cursor-pointer my-2'
+                                                }
+                                            >
                                                 <Typography fontWeight={700} fontSize={14}>
                                                     {comment.user.displayName}
                                                 </Typography>
                                                 <Typography fontSize={14}>{comment.comment}</Typography>
+                                            </Box>
+
+                                            <Box
+                                                onClick={(event: React.MouseEvent<HTMLElement>) =>
+                                                    handleClick(event, comment._id, item._id as string)
+                                                }
+                                                onMouseLeave={handleMouseLeave}
+                                            >
+                                                <Box className={hoverItem === index ? 'block' : 'hidden'}>
+                                                    <IconButton size="small">
+                                                        <MoreHorizIcon />
+                                                    </IconButton>
+                                                </Box>
                                             </Box>
                                         </Box>
                                         {comment.image && (
@@ -269,6 +350,10 @@ const Posts = (props: IPropsPosts) => {
                                         placeholder="Write your comment..."
                                         className="w-full border-0 rounded-lg"
                                         multiline={true}
+                                        defaultValue={''}
+                                        // autoFocus={isUpdate}
+                                        value={input}
+                                        inputRef={textFieldRef}
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleComment(e)}
                                         InputProps={{
                                             endAdornment: (
@@ -299,7 +384,15 @@ const Posts = (props: IPropsPosts) => {
                                     <Box className="flex justify-between pl-16 pr-4">
                                         <ImageList>
                                             <ImageListItem sx={{ width: '102px', height: '130px' }}>
-                                                <img className="w-[100px]" alt="listImage" src={previewImage} />
+                                                <img
+                                                    className="w-[100px]"
+                                                    alt="listImage"
+                                                    src={
+                                                        isUpdate
+                                                            ? `http://localhost:5000/gallery/${user?.id}/${previewImage}`
+                                                            : previewImage
+                                                    }
+                                                />
                                             </ImageListItem>
                                         </ImageList>
                                         <Box className="self-start">
@@ -319,6 +412,13 @@ const Posts = (props: IPropsPosts) => {
                     <Typography>Nothing's new on the feed!</Typography>
                 </Box>
             )}
+            <MenuComment
+                isEdit={isEdit}
+                open={open}
+                handleCloseMenu={handleCloseMenu}
+                anchorEl={anchorEl}
+                openEdit={openEdit}
+            />
         </Fragment>
     );
 };
