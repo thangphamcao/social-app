@@ -3,7 +3,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 
 import { useDeleteCommentPost } from '../../hook';
-// import { UseQueryResult } from 'react-query';
+
 interface IProps {
     anchorEl: HTMLElement | null;
     open: boolean;
@@ -17,11 +17,9 @@ const MenuComment = (props: IProps) => {
     const { anchorEl, handleCloseMenu, open, isEdit, openEdit } = props;
 
     const handleEditComment = async () => {
-        // console.log(isEdit);
         openEdit(isEdit);
         handleCloseMenu();
     };
-    // console.log(getCommentPost.data);
 
     const { mutate } = useDeleteCommentPost();
 
@@ -64,27 +62,3 @@ const MenuComment = (props: IProps) => {
 };
 
 export default MenuComment;
-//<List
-// sx={{
-//     width: '200px',
-//     backgroundColor: 'white',
-//     padding: ' 8px 6px',
-//     margin: '0',
-//     borderRadius: '8px',
-//     fontSize: '14px',
-//     fontWeight: '600',
-//     zIndex: '9',
-//     boxShadow: 'rgba(0, 0, 0, 0.2) 0px 12px 28px 0px ',
-// }}
-// >
-// <ListItem sx={{ padding: '0', margin: '0' }}>
-//     <ListItemButton>
-//         <ListItemIcon sx={{ color: 'black' }}>Edit</ListItemIcon>
-//     </ListItemButton>
-// </ListItem>
-// <ListItem sx={{ padding: '0', margin: '0' }}>
-//     <ListItemButton>
-//         <ListItemIcon sx={{ color: 'black' }}>Delete</ListItemIcon>
-//     </ListItemButton>
-// </ListItem>
-// </List>

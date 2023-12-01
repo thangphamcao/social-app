@@ -57,7 +57,10 @@ const useCreatePost = (close: any) => {
 
 export interface ICommentAPI {
     formData: FormData;
-    id: string;
+    id: {
+        commentID?: string;
+        postID?: string;
+    };
 }
 
 // const useGetCommentPost = () => {
@@ -79,13 +82,10 @@ const useGetCommentPost = (commentID: string, postID: string, onSuccess: (data: 
     });
 };
 
-const useCommentPost = () => {
-    const queryClient = useQueryClient();
+const useCommentPost = (onSuccess: () => void) => {
     return useMutation({
         mutationFn: (data: ICommentAPI) => commentPost(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries('posts');
-        },
+        onSuccess: onSuccess,
     });
 };
 
@@ -94,21 +94,15 @@ const useDeleteCommentPost = () => {
     return useMutation({
         mutationFn: (id: { commentID: string; postID: string }) => deleteCommentPost(id),
         onSuccess: () => {
-            console.log('Successs');
-
             queryClient.invalidateQueries('posts');
         },
     });
 };
 
-const useUpdateCommentPost = () => {
-    const queryClient = useQueryClient();
+const useUpdateCommentPost = (onSuccess: () => void) => {
     return useMutation({
-        mutationFn: (data: { commentID: string; postID: string; update: { comment: string; image: string } }) =>
-            updateCommentPost(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries('posts');
-        },
+        mutationFn: (data: ICommentAPI) => updateCommentPost(data),
+        onSuccess: onSuccess,
     });
 };
 

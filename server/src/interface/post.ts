@@ -14,7 +14,7 @@ export interface IPost {
 interface IComment {
     user: IUser;
     comment: string;
-    image: string;
+    image: {};
 }
 
 interface ILike {

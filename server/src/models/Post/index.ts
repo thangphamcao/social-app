@@ -16,7 +16,7 @@ const postSchema = new mongoose.Schema<IPost>(
             {
                 user: { type: mongoose.Types.ObjectId, ref: 'users' },
                 comment: { type: String, required: false },
-                image: { type: String, required: false },
+                image: { type: Object, required: false },
             },
         ],
     },

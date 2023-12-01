@@ -32,3 +32,17 @@ TODO
 
     - delete comment
 
+
+Function:
+    Tạo, xóa, sửa với các bài viết
+
+    Bình luận, thích, không thích, chia sẻ bài viết
+
+    Kết bạn 
+
+    Tìm kiếm và xem thông tin người dùng
+
+    Tìm kiếm bài viết
+
+    Chat (Nhóm đang cân nhắc)
+

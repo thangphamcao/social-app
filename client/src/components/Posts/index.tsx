@@ -30,6 +30,8 @@ import { IComment, IDetailPost, ILike } from '../../interface/post';
 import { useCommentPost, useGetAllPost, useGetCommentPost, useLikePost, useUpdateCommentPost } from '../../hook';
 import { IUser } from '../../interface';
 import MenuComment from '../Menu/comment';
+import { useQueryClient } from 'react-query';
+
 interface IPropsPosts {
     user: IUser | null;
 }
@@ -45,6 +47,8 @@ const Posts = (props: IPropsPosts) => {
 
     const textFieldRef = useRef<HTMLElement | null>(null);
 
+    const queryClient = useQueryClient();
+
     const open = Boolean(anchorEl);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,26 +58,33 @@ const Posts = (props: IPropsPosts) => {
 
     const { isLoading, isFetched, data } = useGetAllPost();
 
-    const comment = useCommentPost();
-
     const { mutate } = useLikePost();
 
     const handleSuccess = (data: { data: IComment }) => {
         setIsUpdate(true);
-        if (data.data.comment) {
-            setInput(data.data.comment);
-        }
+        const inputText = data.data.comment === 'undefined' ? '' : data.data.comment;
+
+        setInput(inputText!);
+
         if (data.data.image) {
-            setPreviewImage(data.data.image);
-            console.log(data.data.image);
-            console.log(user?.id);
+            const url = `http://localhost:5000/gallery/${user?.id}/${data.data.image.filename}`;
+            setPreviewImage(url);
         }
         textFieldRef.current?.focus();
     };
+    console.log(isUpdate);
 
+    const hanleSuccessComment = () => {
+        queryClient.invalidateQueries('posts');
+        setInput('');
+        setPreviewImage(null);
+        URL.revokeObjectURL(previewImage!);
+    };
     const getCommentPost = useGetCommentPost(isEdit.commentID, isEdit.postID, handleSuccess);
 
-    const handleUpdateCommentPost = useUpdateCommentPost();
+    const comment = useCommentPost(hanleSuccessComment);
+
+    const handleUpdateCommentPost = useUpdateCommentPost(hanleSuccessComment);
 
     const handleCloseMenu = () => {
         setAnchorEl(null);
@@ -108,37 +119,41 @@ const Posts = (props: IPropsPosts) => {
     };
 
     const submitComment = async (id: string) => {
+        // console.log(updateID);
+        if (input !== null && selectedImage !== null) {
+            formData.append('comment', input);
+            formData.append('commentImg', selectedImage, selectedImage!.name);
+        } else if (input !== null && selectedImage === null) {
+            formData.append('comment', input);
+        } else {
+            formData.append('commentImg', selectedImage, selectedImage!.name);
+        }
         if (isUpdate) {
-            const data = {
-                commentID: isEdit.commentID,
-                postID: isEdit.postID,
-                update: {
-                    comment: input as string,
-                    image: selectedImage!.name as string,
+            const updateID = {
+                formData: formData,
+                id: {
+                    commentID: isEdit.commentID,
+                    postID: isEdit.postID,
                 },
             };
-            handleUpdateCommentPost.mutate(data);
 
-            console.log(2);
+            handleUpdateCommentPost.mutate(updateID);
         } else {
-            if (input !== null && selectedImage !== null) {
-                formData.append('comment', input);
-                formData.append('commentImg', selectedImage, selectedImage!.name);
-            } else if (input !== null && selectedImage === null) {
-                formData.append('comment', input);
-            } else {
-                formData.append('commentImg', selectedImage, selectedImage!.name);
-            }
             const data = {
                 formData: formData,
-                id: id,
+                id: {
+                    postID: id,
+                },
             };
-
             comment.mutate(data);
         }
+        setIsUpdate(false);
     };
 
     const handleClose = () => {
+        if (previewImage) {
+            URL.revokeObjectURL(previewImage);
+        }
         setSelectedImage(null);
         setPreviewImage(null);
     };
@@ -299,7 +314,9 @@ const Posts = (props: IPropsPosts) => {
                                                 <Typography fontWeight={700} fontSize={14}>
                                                     {comment.user.displayName}
                                                 </Typography>
-                                                <Typography fontSize={14}>{comment.comment}</Typography>
+                                                <Typography fontSize={14}>
+                                                    {comment.comment !== 'undefined' && comment.comment}
+                                                </Typography>
                                             </Box>
 
                                             <Box
@@ -319,7 +336,7 @@ const Posts = (props: IPropsPosts) => {
                                             <Box className=" px-16">
                                                 <CardMedia
                                                     component="img"
-                                                    image={`http://localhost:5000/gallery/${comment.user._id}/${comment.image}`}
+                                                    image={`http://localhost:5000/gallery/${comment.user._id}/${comment.image.filename}`}
                                                     sx={{
                                                         width: '210px',
                                                         height: '210px',
@@ -384,15 +401,7 @@ const Posts = (props: IPropsPosts) => {
                                     <Box className="flex justify-between pl-16 pr-4">
                                         <ImageList>
                                             <ImageListItem sx={{ width: '102px', height: '130px' }}>
-                                                <img
-                                                    className="w-[100px]"
-                                                    alt="listImage"
-                                                    src={
-                                                        isUpdate
-                                                            ? `http://localhost:5000/gallery/${user?.id}/${previewImage}`
-                                                            : previewImage
-                                                    }
-                                                />
+                                                <img className="w-[100px]" alt="listImage" src={previewImage} />
                                             </ImageListItem>
                                         </ImageList>
                                         <Box className="self-start">

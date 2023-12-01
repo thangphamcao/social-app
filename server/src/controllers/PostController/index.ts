@@ -232,21 +232,23 @@ const postController = {
             const { id } = req.params;
             const userID = req.user?.id as string;
             const { comment } = req.body;
-            const { file } = req;
-            console.log(file);
+            const commentImg = req.file;
+            // console.log(files);
 
             const user = await handleUser.getUserByID(userID);
             const post = await handlePost.getPostByID(id);
 
-            console.log(user);
+            const newComment = {
+                user: user,
+                comment: comment,
+                image: commentImg,
+            };
 
-            if (comment || file) {
-                post?.comment?.push({
-                    user: user,
-                    comment: comment,
-                    image: file?.filename,
-                    path: file?.path,
-                });
+            console.log(newComment);
+            // console.log(post?.comment);
+
+            if (comment || commentImg) {
+                post?.comment?.push(newComment);
             }
             post?.save();
 
@@ -269,12 +271,23 @@ const postController = {
             const query = req.query['id'];
             const contentUpdate = req.body;
 
+            const updateImage = {
+                fieldname: req.file?.fieldname,
+                originalname: req.file?.originalname,
+                encoding: req.file?.encoding,
+                mimetype: req.file?.mimetype,
+                destination: req.file?.destination,
+                filename: req.file?.filename,
+                path: req.file?.path,
+                size: req.file?.size,
+            };
+
             const post = await handlePost.getPostByID(id);
             if (post !== null) {
                 post.comment?.map((item) => {
                     if (userID === item.user.toString() && query === item._id?.toString()) {
                         item.comment = contentUpdate.comment;
-                        item.image = contentUpdate.image;
+                        item.image = updateImage;
                     }
                 });
                 post.save();

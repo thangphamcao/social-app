@@ -34,7 +34,7 @@ router.get('/comment/get/:id', verifyToken, postController.getCommentPostByID);
 router.post('/comment/:id', [verifyToken, upload.single('commentImg')], postController.commentPost);
 
 // update comment
-router.put('/comment/update/:id', verifyToken, postController.updateComment);
+router.put('/comment/update/:id', [verifyToken, upload.single('commentImg')], postController.updateComment);
 
 // delete comment
 router.delete('/comment/delete/:id', verifyToken, postController.deleteComment);

@@ -63,7 +63,7 @@ export const getCommentPost = async (commentID: string, postID: string) => {
 export const commentPost = async (req: ICommentAPI) => {
     console.log(req);
 
-    const { data } = await API.post(`/api/v1/post/comment/${req.id}`, req.formData, {
+    const { data } = await API.post(`/api/v1/post/comment/${req.id.postID}`, req.formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
     return data;
@@ -74,11 +74,7 @@ export const deleteCommentPost = async (id: { commentID: string; postID: string 
     return data;
 };
 
-export const updateCommentPost = async (input: {
-    commentID: string;
-    postID: string;
-    update: { comment: string; image: string };
-}) => {
-    const { data } = await API.put(`/api/v1/post/comment/update/${input.postID}?id=${input.commentID}`, input.update);
+export const updateCommentPost = async (req: ICommentAPI) => {
+    const { data } = await API.put(`/api/v1/post/comment/update/${req.id.postID}?id=${req.id.commentID}`, req.formData);
     return data;
 };

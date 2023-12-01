@@ -36,6 +36,9 @@ export interface IComment {
         };
     };
     comment: string | null;
-    image: string | null;
+    image: {
+        path: string;
+        filename: string;
+    };
     _id: string;
 }
